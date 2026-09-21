@@ -28,14 +28,14 @@ Long term, the project aims to support configurable multi-seat setups
 with more than two independent users.
 
 ## Current status
->✓ Sway/wlroots multiseat proof-of-concept
->✓ Remote pointer targets seat1
->✓ Remote keyboard targets seat1
->✓ Existing GTK4 GUI still works
+>-✓ Sway/wlroots multiseat proof-of-concept
+>-✓ Remote pointer targets seat1
+>-✓ Remote keyboard targets seat1
+>-✓ Existing GTK4 GUI still works
 
 ## Current limitation
->• Receiving seat is hard-coded to "seat1"
->• 2-Player Mode is currently experimental and has only been tested on
+>-• Receiving seat is hard-coded to "seat1"
+>-• 2-Player Mode is currently experimental and has only been tested on
 >  Sway/wlroots. The underlying Lan Mouse application retains its broader
 >  upstream platform support, but multiseat mode should not yet be assumed
 >  to work on those platforms.
