@@ -28,12 +28,12 @@ Long term, the project aims to support configurable multi-seat setups
 with more than two independent users.
 
 ## Current status
-- ✓ Sway/wlroots multiseat proof-of-concept
-- ✓ Remote pointer targets seat1
-- ✓ Remote keyboard targets seat1
-- ✓ Existing GTK4 GUI still works
-- x Multiuser support beyond 2 users
-- x Custom GUI to configure user seats
+- [x] Sway/wlroots multiseat proof-of-concept
+- [x] Remote pointer targets seat1
+- [x] Remote keyboard targets seat1
+- [x] Existing GTK4 GUI still works
+- [ ] Multiuser support beyond 2 users
+- [ ] Custom GUI to configure user seats
 
 ## Current limitation
 > -  Receiving seat is hard-coded to "seat1"
