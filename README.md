@@ -1,4 +1,4 @@
-# Lan Mouse
+# Lan Mouse 2-Player Mode
 
 [![CI](https://github.com/feschber/lan-mouse/actions/workflows/rust.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/rust.yml) [![Cachix](https://github.com/feschber/lan-mouse/actions/workflows/cachix.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/cachix.yml) [![Release](https://github.com/feschber/lan-mouse/actions/workflows/release.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/release.yml)
 
@@ -16,6 +16,29 @@ Focus lies on performance, ease of use and a maintainable implementation that ca
 ***blazingly fast™*** because it's written in rust.
 
 - _Now with a gtk frontend_
+
+This fork is a Experimental multiseat fork of Lan Mouse.
+
+## Goal
+Allow two (or more) users on two Linux PCs to independently move
+between both machines while keeping separate cursors and
+keyboard focus.
+
+Long term, the project aims to support configurable multi-seat setups
+with more than two independent users.
+
+## Current status
+✓ Sway/wlroots multiseat proof-of-concept
+✓ Remote pointer targets seat1
+✓ Remote keyboard targets seat1
+✓ Existing GTK4 GUI still works
+
+## Current limitation
+• Receiving seat is hard-coded to "seat1"
+• 2-Player Mode is currently experimental and has only been tested on
+  Sway/wlroots. The underlying Lan Mouse application retains its broader
+  upstream platform support, but multiseat mode should not yet be assumed
+  to work on those platforms.
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="/screenshots/dark.png?raw=true">
