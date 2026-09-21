@@ -32,10 +32,12 @@ with more than two independent users.
 - ✓ Remote pointer targets seat1
 - ✓ Remote keyboard targets seat1
 - ✓ Existing GTK4 GUI still works
+- x Multiuser support beyond 2 users
+- x Custom GUI to configure user seats
 
 ## Current limitation
-> - • Receiving seat is hard-coded to "seat1"
-> - • 2-Player Mode is currently experimental and has only been tested on
+> -  Receiving seat is hard-coded to "seat1"
+> -  2-Player Mode is currently experimental and has only been tested on
 >  Sway/wlroots. The underlying Lan Mouse application retains its broader
 >  upstream platform support, but multiseat mode should not yet be assumed
 >  to work on those platforms.
