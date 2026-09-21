@@ -40,7 +40,9 @@ struct State {
     /// shared by all clients, so the keymap fd is sent once instead of once per client
     keyboard: Option<Vk>,
     input_for_client: HashMap<EmulationHandle, VirtualInput>,
-    seat: wl_seat::WlSeat,
+    _seats: Vec<wl_seat::WlSeat>,
+    seats_with_keyboard: Vec<wl_seat::WlSeat>,
+    seat: Option<wl_seat::WlSeat>,
     qh: QueueHandle<Self>,
     vpm: VpManager,
     vkm: VkManager,
@@ -59,9 +61,21 @@ impl WlrootsEmulation {
         let (globals, queue) = registry_queue_init::<State>(&conn)?;
         let qh = queue.handle();
 
-        let seat: wl_seat::WlSeat = globals
-            .bind(&qh, 7..=8, ())
-            .map_err(|e| WaylandBindError::new(e, "wl_seat 7..=8"))?;
+        let registry = globals.registry();
+
+        let seats: Vec<wl_seat::WlSeat> = globals.contents().with_list(|list| {
+            list.iter()
+                .filter(|global| global.interface == "wl_seat" && global.version >= 2)
+                .map(|global| {
+                    registry.bind::<wl_seat::WlSeat, _, _>(
+                        global.name,
+                        global.version.min(8),
+                        &qh,
+                        (),
+                    )
+                })
+                .collect()
+        });
 
         let vpm: VpManager = globals
             .bind(&qh, 1..=1, ())
@@ -78,14 +92,16 @@ impl WlrootsEmulation {
                 keymap: None,
                 keyboard: None,
                 input_for_client,
-                seat,
+                _seats: seats,
+                seats_with_keyboard: Vec::new(),
+                seat: None,
                 vpm,
                 vkm,
                 qh,
             },
             queue,
         };
-        while emulate.state.keymap.is_none() {
+        while emulate.state.seat.is_none() || emulate.state.keymap.is_none() {
             emulate.queue.blocking_dispatch(&mut emulate.state)?;
         }
         // let fd = unsafe { &File::from_raw_fd(emulate.state.keymap.unwrap().1.as_raw_fd()) };
@@ -97,12 +113,17 @@ impl WlrootsEmulation {
 
 impl State {
     fn add_client(&mut self, client: EmulationHandle) {
-        let pointer: Vp = self.vpm.create_virtual_pointer(None, &self.qh, ());
+        let seat = self
+            .seat
+            .as_ref()
+            .expect("target Wayland seat was not selected");
+
+        let pointer: Vp = self.vpm.create_virtual_pointer(Some(seat), &self.qh, ());
 
         let keyboard = match self.keyboard.as_ref() {
             Some(keyboard) => keyboard.clone(),
             None => {
-                let keyboard: Vk = self.vkm.create_virtual_keyboard(&self.seat, &self.qh, ());
+                let keyboard: Vk = self.vkm.create_virtual_keyboard(seat, &self.qh, ());
                 // TODO: use server side keymap
                 let Some((format, fd, size)) = self.keymap.as_ref() else {
                     panic!("no keymap");
@@ -293,20 +314,42 @@ impl Dispatch<WlKeyboard, ()> for State {
 
 impl Dispatch<WlSeat, ()> for State {
     fn event(
-        _: &mut Self,
+        state: &mut Self,
         seat: &WlSeat,
         event: <WlSeat as wayland_client::Proxy>::Event,
         _: &(),
         _: &Connection,
         qhandle: &QueueHandle<Self>,
     ) {
-        if let wl_seat::Event::Capabilities {
-            capabilities: WEnum::Value(capabilities),
-        } = event
-        {
-            if capabilities.contains(wl_seat::Capability::Keyboard) {
-                seat.get_keyboard(qhandle, ());
+        match event {
+            wl_seat::Event::Name { name } => {
+                log::info!("found Wayland seat: {name}");
+
+                if name == "seat1" && state.seat.is_none() {
+                    log::info!("using Wayland seat: {name}");
+                    state.seat = Some(seat.clone());
+
+                    if state.seats_with_keyboard.contains(seat) && state.keymap.is_none() {
+                        seat.get_keyboard(qhandle, ());
+                    }
+                }
             }
+
+            wl_seat::Event::Capabilities {
+                capabilities: WEnum::Value(capabilities),
+            } => {
+                if capabilities.contains(wl_seat::Capability::Keyboard) {
+                    if !state.seats_with_keyboard.contains(seat) {
+                        state.seats_with_keyboard.push(seat.clone());
+                    }
+
+                    if state.seat.as_ref() == Some(seat) && state.keymap.is_none() {
+                        seat.get_keyboard(qhandle, ());
+                    }
+                }
+            }
+
+            _ => {}
         }
     }
 }
